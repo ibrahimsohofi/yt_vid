@@ -17,16 +17,14 @@ app.get('/info', async (req, res) => {
         return res.status(400).json({ error: 'Please provide a YouTube video URL.' });
     }
 
-    if (!isValidYouTubeUrl(videoUrl)) {
+    const videoId = extractVideoId(videoUrl);
+    console.log('Extracted video ID:', videoId); // Log the video ID to check
+
+    if (!videoId) {
         return res.status(400).json({ error: 'Invalid YouTube video URL.' });
     }
 
     try {
-        const videoId = extractVideoId(videoUrl);
-        if (!videoId) {
-            return res.status(400).json({ error: 'Invalid YouTube video URL.' });
-        }
-
         const video = await youtube.getVideo(videoId);
 
         res.json({
@@ -39,16 +37,32 @@ app.get('/info', async (req, res) => {
             thumbnail: video.thumbnails[0].url,
         });
     } catch (error) {
-        console.error('Error fetching video info:', error); // Log full error object
+        console.error('Error fetching video info:', error);
         res.status(500).json({ error: 'Error fetching video info: ' + error.message });
     }
 });
 
+
 // Function to extract video ID from the URL
 function extractVideoId(url) {
-    const urlObj = new URL(url);
-    return urlObj.searchParams.get('v') || urlObj.pathname.split('/').pop();
+    try {
+        const urlObj = new URL(url);
+        // Check for valid YouTube URL structure
+        const videoId = urlObj.searchParams.get('v');
+        console.log(videoId)
+        if (videoId) {
+            return videoId;
+        } else {
+            // Try extracting the video ID from the URL path
+            const pathParts = urlObj.pathname.split('/');
+            const videoIdFromPath = pathParts[pathParts.length - 1];
+            return videoIdFromPath.length === 11 ? videoIdFromPath : null;
+        }
+    } catch (error) {
+        return null;
+    }
 }
+
 
 // Function to validate YouTube video URL format
 function isValidYouTubeUrl(url) {
