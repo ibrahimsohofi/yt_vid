@@ -11,13 +11,9 @@ const youtube = new Client();
 app.use(cors());
 
 app.get('/info', async (req, res) => {
-    const videoUrl = req.query.url;
+   
 
-    if (!videoUrl) {
-        return res.status(400).json({ error: 'Please provide a YouTube video URL.' });
-    }
-
-    const videoId = extractVideoId(videoUrl);
+    const videoId = "9Zesswnw75w";
     console.log('Extracted video ID:', videoId); // Log the video ID to check
 
     if (!videoId) {
@@ -26,7 +22,9 @@ app.get('/info', async (req, res) => {
 
     try {
         const video = await youtube.getVideo(videoId);
-
+        console.log('Fetched video details:', video); // Log fetched video details
+    
+    
         res.json({
             title: video.title,
             description: video.description,
