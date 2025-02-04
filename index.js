@@ -6,10 +6,8 @@ const port = process.env.PORT || 3000;
 
 const youtube = new Client();
 
-app.use(express.json());
-
-app.post('/get-video-info', async (req, res) => {
-    const { videoUrl } = req.body;
+app.get('/info', async (req, res) => {
+    const videoUrl = req.query.url;
 
     if (!videoUrl) {
         return res.status(400).json({ error: 'Please provide a YouTube video URL.' });
@@ -17,6 +15,10 @@ app.post('/get-video-info', async (req, res) => {
 
     try {
         const videoId = extractVideoId(videoUrl);
+        if (!videoId) {
+            return res.status(400).json({ error: 'Invalid YouTube video URL.' });
+        }
+
         const video = await youtube.getVideo(videoId);
 
         res.json({
@@ -35,17 +37,9 @@ app.post('/get-video-info', async (req, res) => {
 
 function extractVideoId(url) {
     const urlObj = new URL(url);
-    return urlObj.searchParams.get('v');
+    return urlObj.searchParams.get('v') || urlObj.pathname.split('/').pop();
 }
-
-// Example usage (comment this out before deploying if you don't want automatic call)
-// app.get('/', (req, res) => {
-//     const videoId = 'm4RnrPzo3hA'; // Replace with a valid YouTube video ID
-//     getVideoInfo(videoId).catch(error => console.error('Unhandled promise rejection:', error));
-//     res.send('Fetching video info...');
-// });
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
- 
